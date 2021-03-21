@@ -1162,11 +1162,42 @@ class GraphDataset(object):
             random.shuffle(self.graphs)
 
     @staticmethod
+    def drop_random_edges(edge_index, drop_prob=0.1) -> torch.Tensor:
+        r"""
+        Randomly drops edges from an edge list
+
+        Args:
+            edge_index: torch.Tensor edge list of shape (2, # edges)
+            drop_prob: edge dropping probability
+            
+        Returns:
+            dropped_edge_index: edge list after random dropping
+        """
+
+        if not torch.is_tensor(edge_index):
+            raise TypeError(
+                "'edge_index' must be a torch Tensor"
+                f" (got {type(idx).__name__})."
+            )
+        elif edge_index.shape[0] != 2:
+            raise IndexError(
+                "edge_index must have dimension (2, #edges)"
+            )
+        elif drop_prob < 0 or drop_prob > 1:
+            raise ValueError(
+                "drop_prob must be a value between 0 and 1"
+            )
+
+        mask = torch.rand(edge_index.shape[1]) > drop_prob
+        dropped_edge_index = edge_index[:, mask]
+        return dropped_edge_index
+
+    @staticmethod
     def pyg_to_graphs(
         dataset,
-        verbose: bool = False,
-        fixed_split: bool = False,
-        tensor_backend: bool = False,
+        verbose = False,
+        fixed_split = False,
+        tensor_backend = False,
         netlib=None
     ) -> List[Graph]:
         r"""
